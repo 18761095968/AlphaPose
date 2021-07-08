@@ -62,7 +62,7 @@ parser.add_argument('--pose_flow', dest='pose_flow',
 parser.add_argument('--pose_track', dest='pose_track',
                     help='track humans in video with reid', action='store_true', default=False)
 
-args = parser.parse_args()
+args = parser.parse_args()       #解析参数
 cfg = update_config(args.cfg)
 
 args.gpus = [int(args.gpus[0])] if torch.cuda.device_count() >= 1 else [-1]
@@ -94,7 +94,7 @@ class DetectionLoader():
         self.det = (None, None, None, None, None, None, None)
         self.pose = (None, None, None, None, None, None, None)
 
-    def process(self, im_name, image):
+    def process(self, im_name, image):#预处理
         # start to pre process images for object detection
         self.image_preprocess(im_name, image)
         # start to detect human in images
@@ -106,22 +106,22 @@ class DetectionLoader():
     def image_preprocess(self, im_name, image):
         # expected image shape like (1,3,h,w) or (3,h,w)
         img = self.detector.image_preprocess(image)
-        if isinstance(img, np.ndarray):
+        if isinstance(img, np.ndarray): #判断img是否是np.ndarry类型
             img = torch.from_numpy(img)
         # add one dimension at the front for batch if image shape (3,h,w)
         if img.dim() == 3:
             img = img.unsqueeze(0)
         orig_img = image # scipy.misc.imread(im_name_k, mode='RGB') is depreciated
-        im_dim = orig_img.shape[1], orig_img.shape[0]
+        im_dim = orig_img.shape[1], orig_img.shape[0]#读取第一维度和第二维度的长度
 
-        im_name = os.path.basename(im_name)
+        im_name = os.path.basename(im_name)#截取path中的去目录部分的最后的文件或路径名
 
-        with torch.no_grad():
+        with torch.no_grad():#上下文管理器
             im_dim = torch.FloatTensor(im_dim).repeat(1, 2)
 
         self.image = (img, orig_img, im_name, im_dim)
 
-    def image_detection(self):
+    def image_detection(self):#检测边框
         imgs, orig_imgs, im_names, im_dim_list = self.image
         if imgs is None:
             self.det = (None, None, None, None, None, None, None)
@@ -148,7 +148,7 @@ class DetectionLoader():
 
         self.det = (orig_imgs, im_names, boxes, scores[dets[:, 0] == 0], ids[dets[:, 0] == 0], inps, cropped_boxes)
 
-    def image_postprocess(self):
+    def image_postprocess(self):#后处理
         with torch.no_grad():
             (orig_img, im_name, boxes, scores, ids, inps, cropped_boxes) = self.det
             if orig_img is None:
@@ -162,7 +162,7 @@ class DetectionLoader():
                 inps[i], cropped_box = self.transformation.test_transform(orig_img, box)
                 cropped_boxes[i] = torch.FloatTensor(cropped_box)
 
-            self.pose = (inps, orig_img, im_name, boxes, scores, ids, cropped_boxes)
+            self.pose = (inps, orig_img, im_name, boxes, scores, ids, cropped_boxes)#返回姿态
 
     def read(self):
         return self.pose
@@ -254,7 +254,7 @@ class SingleImageAlphaPose():
         self.pose_model = builder.build_sppe(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
 
         print(f'Loading pose model from {args.checkpoint}...')
-        self.pose_model.load_state_dict(torch.load(args.checkpoint, map_location=args.device))
+        self.pose_model.load_state_dict(torch.load(args.checkpoint, map_location=args.device)) #加载模型
         self.pose_dataset = builder.retrieve_dataset(cfg.DATASET.TRAIN)
 
         self.pose_model.to(args.device)

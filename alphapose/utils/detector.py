@@ -138,11 +138,11 @@ class DetectionLoader():
                     img_k = torch.from_numpy(img_k)
                 # add one dimension at the front for batch if image shape (3,h,w)
                 if img_k.dim() == 3:
-                    img_k = img_k.unsqueeze(0)
+                    img_k = img_k.unsqueeze(0)#加上一个维度
                 orig_img_k = cv2.cvtColor(cv2.imread(im_name_k), cv2.COLOR_BGR2RGB) # scipy.misc.imread(im_name_k, mode='RGB') is depreciated
-                im_dim_list_k = orig_img_k.shape[1], orig_img_k.shape[0]
+                im_dim_list_k = orig_img_k.shape[1], orig_img_k.shape[0]#读取矩阵的长度
 
-                imgs.append(img_k)
+                imgs.append(img_k)#追加对象
                 orig_imgs.append(orig_img_k)
                 im_names.append(os.path.basename(im_name_k))
                 im_dim_list.append(im_dim_list_k)
